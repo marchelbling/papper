@@ -1,0 +1,2 @@
+curl --data "verb=GetRecord&identifier=oai:arXiv.org:${arxiv_id}&metadataPrefix=arXivRaw" \
+     http://export.arxiv.org/oai2 -o "${arxiv_id}.meta"
