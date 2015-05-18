@@ -5,15 +5,18 @@ from .reference import Reference
 
 class Bibliography(object):
     def __init__(self, bbl):
-        self.bibitems = self.split_bibitem(bbl)
+        self.bibitems = Bibliography.split_bibitem(bbl)
         self.references = []
 
     def process(self):
         self.references = map(lambda bibitem: Reference(label=bibitem[0],
-                                                        bibitem=bibitem[1]),
+                                                        bibitem=bibitem[1]).bibtex,
                               self.bibitems)
+        with open('/tmp/biblio.bib', 'w') as output:
+            output.write('\n\n'.join(self.references))
 
-    def split_bibitem(self, bbl):
+    @staticmethod
+    def split_bibitem(bbl):
         def extract_substring_in(string, begin, end):
             # it would be more robust to check parentheses count
             begin_index = string.find(begin)
@@ -33,9 +36,10 @@ class Bibliography(object):
         # split reference alias and reference info
         bibitems = map(lambda ref: extract_substring_in(ref, '{', '}'),
                        bibitems)
-        return map(self.unlatexify, bibitems)
+        return map(Bibliography.unlatexify, bibitems)
 
-    def unlatexify(self, line):
+    @staticmethod
+    def unlatexify(line):
         # see http://arxiv.org/help/prep#author
         return line.replace('\\"A', "Ä")\
                    .replace('\\"a', "ä")\
