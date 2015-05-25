@@ -1,3 +1,29 @@
+# -*- coding: utf-8 -*-
+
+import os
+
+
+def safe_decode_string(value):
+    try:
+        return value.decode('utf8').encode('utf8')
+    except UnicodeError:
+        try:
+            return value.decode('latin1').encode('utf8')
+        except UnicodeError:
+            return value.decode('utf8', errors='replace').encode('utf8')
+
+
+def list_all_files(path, extensions=None):
+    filenames = []
+    path = os.path.abspath(path)
+    for root, _, files in os.walk(safe_decode_string(path), topdown=True):
+        filenames.extend(map(lambda x: os.path.join(root, safe_decode_string(x)), files))
+
+    if extensions is not None:
+        filenames = filter(lambda x: os.path.splitext(x)[-1] in extensions,
+                           filenames)
+
+    return filenames
 
 
 def unlatexify(line):

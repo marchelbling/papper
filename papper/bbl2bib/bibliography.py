@@ -6,15 +6,13 @@ from .utils import unlatexify
 
 class Bibliography(object):
     def __init__(self, bbl):
-        self.bibitems = Bibliography.split_bibitem(bbl)
-        self.references = []
+        self.references = [Reference(label=item[0], bibitem=item[1])
+                           for item in Bibliography.split_bibitem(bbl)]
 
-    def process(self):
-        self.references = map(lambda item: Reference(label=item[0],
-                                                     bibitem=item[1]).bibtex,
-                              self.bibitems)
-        with open('/tmp/biblio.bib', 'w') as output:
-            output.write('\n\n'.join(self.references))
+    def format(self, path):
+        with open(path, 'w') as output:
+            output.write('\n\n'.join(map(lambda reference: reference.bibtex,
+                                         self.references)))
 
     @staticmethod
     def split_bibitem(bbl):
@@ -31,10 +29,11 @@ class Bibliography(object):
         bibitems = map(lambda item: item.strip(), bibitems)
         # filter empty reference
         bibitems = filter(None, bibitems)
+        # remove latex char sequences
+        bibitems = map(unlatexify, bibitems)
         # filter citation name
         bibitems = map(lambda ref: extract_substring_in(ref, '[', ']')[1],
                        bibitems)
         # split reference alias and reference info
-        bibitems = map(lambda ref: extract_substring_in(ref, '{', '}'),
-                       bibitems)
-        return map(unlatexify, bibitems)
+        return map(lambda ref: extract_substring_in(ref, '{', '}'),
+                   bibitems)

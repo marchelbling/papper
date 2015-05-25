@@ -7,38 +7,36 @@ import json
 class Reference(object):
     def __init__(self, label, bibitem):
         self.label = label
-        self.reference = Reference.resolve(bibitem)
+        self.reference = self.resolve(bibitem)
 
-    def set_label(self):
+    @property
+    def bibtex(self):
         labelify = re.compile('{.*?,')
-        self.reference = labelify.sub(self.reference,
-                                      '{' + self.label + ',', 1)
+        return labelify.sub(self.reference,
+                            '{' + self.label + ',', 1)
 
-    @staticmethod
-    def resolve(bibitem):
+    def resolve(self, bibitem):
         # Let’s be naive:
         # http://labs.crossref.org/resolving-citations-we-dont-need-no-stinkin-parser/
-        dois = Reference.query_dois({
+        dois = self.query_dois({
             'q': '+'.join(bibitem.strip().split()),
             'sort': 'score'
         })
         if not dois:
-            return Reference.parse()
+            return self.parse()
 
         crossref = dois[0]
-        return Reference.resolve_doi(crossref['doi']) or \
-            Reference.crossref_to_bibtex(crossref)
+        return self.resolve_doi(crossref['doi']) or \
+            self.crossref_to_bibtex(crossref)
 
-    @staticmethod
-    def query_dois(filters):
+    def query_dois(self, filters):
         response = requests.get('http://search.labs.crossref.org/dois',
                                 params=filters)
         if not response.ok:
             return []
         return json.loads(response.content)
 
-    @staticmethod
-    def resolve_doi(doi):
+    def resolve_doi(self, doi):
         headers = {
             'Accept': 'application/x-bibtex'
         }
@@ -51,6 +49,6 @@ class Reference(object):
     def crossref_to_bibtex(self, doi):
         raise NotImplementedError
 
-    @staticmethod
-    def parse(label, bibitem):
+    def parse(self):
+        return 'Missing data for {}'.format(self.label)
         raise NotImplementedError

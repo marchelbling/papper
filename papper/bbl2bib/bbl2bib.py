@@ -15,4 +15,4 @@ def parse_options():
 
 def main():
     options = parse_options()
-    BBLParser(options.input)
+    BBLParser.parse(options.input)
