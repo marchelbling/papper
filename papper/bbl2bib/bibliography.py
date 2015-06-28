@@ -12,8 +12,8 @@ class Bibliography(object):
         self.references = map(lambda bibitem: Reference(label=bibitem[0],
                                                         bibitem=bibitem[1]).bibtex,
                               self.bibitems)
-        with open('/tmp/biblio.bib', 'w') as output:
-            output.write('\n\n'.join(self.references))
+        #  with open('/tmp/biblio.bib', 'w') as output:
+        #      output.write('\n\n'.join(self.references))
 
     @staticmethod
     def split_bibitem(bbl):
@@ -36,7 +36,7 @@ class Bibliography(object):
         # split reference alias and reference info
         bibitems = map(lambda ref: extract_substring_in(ref, '{', '}'),
                        bibitems)
-        return map(Bibliography.unlatexify, bibitems)
+        return bibitems
 
     @staticmethod
     def unlatexify(line):

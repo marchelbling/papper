@@ -6,7 +6,14 @@ import json
 class Reference(object):
     def __init__(self, label, bibitem):
         self.label = label
+        self.bibitem = bibitem
         self.bibtex = Reference.resolve(label, bibitem)
+        self.log()
+
+    def log(self):
+        with open('/data/bibliography', 'a') as biblio:
+            biblio.write(json.dumps({'bibitem': self.bibitem,
+                                     'bibtex': self.bibtex}) + '\n')
 
     @staticmethod
     def resolve(label, bibitem):
@@ -17,12 +24,12 @@ class Reference(object):
             'sort': 'score'
         })
         if not dois:
-            return Reference.parse()
+            return None  # Reference.parse()
         reference = Reference.resolve_doi(dois[0]['doi'])
         if reference:
             return Reference.set_label(label, reference)
         else:
-            return Reference.reference_to_bibtex(dois[0])
+            return None  # Reference.reference_to_bibtex(dois[0])
 
     @staticmethod
     def query_dois(filters):

@@ -8,6 +8,20 @@ class BBLParser(object):
     r"""
     """
     @staticmethod
+    def list_all_files(path, discard=None, extensions=None):
+        filenames = []
+        path = os.path.abspath(path)
+        for root, _, files in os.walk(path, topdown=True):
+            filenames.extend(map(lambda x: os.path.join(root, x), files))
+        if discard is not None:
+            discard = set(discard)
+            filenames = filter(lambda x: x not in discard, filenames)
+        if extensions:
+            filenames = filter(lambda x: any(x.endswith(extension) for extension in extensions),
+                               filenames)
+        return filenames
+
+    @staticmethod
     def parse(path):
         document, references = [], []
 
@@ -40,6 +54,9 @@ class BBLParser(object):
         def is_bib(line):
             return not is_biblio_begin(line) and not is_biblio_end(line)
 
+        def is_comment(line):
+            return line.startswith('%')
+
         def parse_inline_biblio(line):
             bbl = bbl_file(line) or default_bbl()
             try:
@@ -51,21 +68,26 @@ class BBLParser(object):
                 bbl_lines = ''
             return '\n'.join(bbl_lines)
 
-        with open(path, 'r') as data:
-            bibliography = False
+        for filename in BBLParser.list_all_files(path, extensions=('tex', 'bbl')):
+            with open(filename, 'r') as data:
+                bibliography = False
 
-            for line in data:
-                if is_biblio_begin(line):
-                    bibliography = True
-                elif is_biblio_end(line) is not None:
-                    bibliography = False
+                for line in data:
+                    if is_biblio_begin(line):
+                        bibliography = True
+                        continue
+                    elif is_biblio_end(line):
+                        bibliography = False
+                        continue
+                    elif is_comment(line):
+                        continue
 
-                if is_inlined_bbl(line):
-                    references.append(parse_inline_biblio(line))
-                elif bibliography:
-                    references.append(line)
-                else:
-                    document.append(line)
+                    if is_inlined_bbl(line):
+                        references.append(parse_inline_biblio(line))
+                    elif bibliography:
+                        references.append(line)
+                    else:
+                        document.append(line)
 
         return Document(content='\n'.join(document),
                         bbl='\n'.join(references))
