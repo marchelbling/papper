@@ -1,1 +1,1 @@
-from .bbl2bib import main
+from .cli import *
