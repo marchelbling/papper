@@ -2,6 +2,6 @@
 
 """ papper cli """
 
-from .bbl2bib.__main__ import main
+from .bbl2bib import main
 
 main()
